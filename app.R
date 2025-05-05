@@ -1,7 +1,10 @@
 library(shiny)
-library(budgethelp)
 library(openxlsx)
-requiredlibraries()
+library(readxl)
+library(tidyverse)
+library(rsconnect)
+library(glue)
+source("Budget Functions.R")
 # Define the UI
 defaultprojects <- activeprojects()
 projectnames <- lapply(defaultprojects[[1]],function(i) {gsub("_"," ",i) })
