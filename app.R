@@ -2,7 +2,6 @@ library(shiny)
 library(openxlsx)
 library(readxl)
 library(tidyverse)
-library(rsconnect)
 library(glue)
 source("Budget Functions.R")
 # Define the UI
