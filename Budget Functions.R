@@ -255,6 +255,7 @@ masterfunction <- function(budgetpath,payrollpath,costspath,WDSlist,projectnamel
   payroll <- read_excel(payrollpath)
   cleanedpayroll <- payrollcleaner(payroll)
   cleanedpayroll <- gatherpayroll(cleanedpayroll)
+  print("hi again")
   for(i in projectnamelist){
     print(i)
     budget <- read_excel(budgetpath,sheet = i)
@@ -274,6 +275,7 @@ masterfunction <- function(budgetpath,payrollpath,costspath,WDSlist,projectnamel
 
     
     #filter payroll by current project and add faculty benefit sums to payroll
+    
     projectpayroll <- filter(cleanedpayroll,WDS == activeWDS)
     output <- placebenefits(budget,cleanedpayroll,month)
     namedproll <- output[[2]]

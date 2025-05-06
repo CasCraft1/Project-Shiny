@@ -11,10 +11,10 @@ projectnames <- lapply(defaultprojects[[1]],function(i) {gsub("_"," ",i) })
 
 
 ui <- navbarPage("",
-                 tabPanel("Settings",fluidRow(column(5,textInput("budgetpath","Budget Path"),
-                          textInput("payrollpath","Payroll Path"),
-                          textInput("costspath","Other Costs Path"),
-                          textInput("monthyear","Date (As on Budget Sheet)")),
+                 tabPanel("Settings",fluidRow(column(5,fileInput("budgetfile","Upload Budget"),
+                          fileInput("payrollfile","Upload Payroll"),
+                          fileInput("costfile","Upload Costs"),
+                          textInput("monthyear","Month")),
                           column(5,checkboxGroupInput("projects","Select Projects",choiceNames=projectnames,choiceValues = defaultprojects[[1]]),checkboxInput("selectall","Select All"))),
                           fluidRow(column(5,textInput("additionalprojects","Additional Projects (As On Budget Sheet)"),actionButton("testbutton","Run!"),textOutput("errormessage")))),
                  tabPanel("Output", uiOutput("newstuff"))
@@ -24,22 +24,21 @@ ui <- navbarPage("",
 
 
 server<- function(input,output,session){
-  #gather project input
-  checkboxprojects <- reactive(input$projects)
+
+  #for files
+  costfile <- reactive(input$costfile$datapath)
+  payrollfile <- reactive(input$payrollfile$datapath)
+  budgetfile <- reactive(input$budgetfile$datapath)
   extraprojects <- reactive(input$additionalprojects)
-  rawbudgetpath <- reactive(input$budgetpath)
-  rawpayrollpath <- reactive(input$payrollpath)
-  rawcostpath <- reactive(input$costspath)
+  checkboxprojects <- reactive(input$projects)
   
   observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=defaultprojects[[1]],choiceNames = projectnames,choiceValues = defaultprojects[[1]])}
     else{updateCheckboxGroupInput(session,"projects",choiceNames = projectnames,choiceValues = defaultprojects[[1]])}})
   observeEvent(input$testbutton,{
-    newbudgetpath <- gsub('"','',rawbudgetpath())
-    newpayrollpath <- gsub('"','',rawpayrollpath())
-    newcostspath <- gsub('"','',rawcostpath())
+    
     tryCatch({
-    if(!rawbudgetpath() == ""){
-      
+    if(!is.null(budgetfile())){
+    print("hi")
     #modify paths to be usable in function
 
     
@@ -57,7 +56,9 @@ server<- function(input,output,session){
     }
     #call function to gather outputs
     
-    outputs <- masterfunction(newbudgetpath,newpayrollpath,newcostspath,WDS,selectedprojects,input$monthyear)
+    #outputs <- masterfunction(newbudgetpath,newpayrollpath,newcostspath,WDS,selectedprojects,input$monthyear)
+    outputs <- masterfunction(budgetfile(),payrollfile(),costfile(),WDS,selectedprojects,input$monthyear)
+    print("Hi again")
     #render tables for each project
     lapply(seq_len(length(selectedprojects)),function(i){
       print(i)
@@ -98,10 +99,10 @@ server<- function(input,output,session){
 }
     
     #output everything minus the budget
-    if(rawbudgetpath() == "" ){
-      if(newcostspath != "" & newpayrollpath != ""){ 
-        payrolloutput <- payrollonly(newpayrollpath)
-        costsoutput <- othercostsonly(newcostspath)
+    if(is.null(budgetfile())){
+      if(!is.null(costfile()) & !is.null(payrollfile()) != ""){ 
+        payrolloutput <- payrollonly(payrollfile())
+        costsoutput <- othercostsonly(costfile())
         
         wds <- c()
         ntabs <- length(payrolloutput)
@@ -138,8 +139,9 @@ server<- function(input,output,session){
         
       }
       #output costs only
-      if(newcostspath != "" & newpayrollpath ==""){
-        costsoutput <- othercostsonly(newcostspath)
+      
+      if(!is.null(costfile()) & is.null(payrollfile())){
+        costsoutput <- othercostsonly(costfile())
         wds <- c()
         ntabs <- length(costsoutput)
         for(i in 1:ntabs){
@@ -173,9 +175,10 @@ server<- function(input,output,session){
         
       }
       #output payroll only
-      if(payrollpath != "" & newcostspath ==""){
+      
+      if(!is.null(payrollfile()) & is.null(costfile())){
         message("Hi")
-      payrolloutput <- payrollonly(newpayrollpath)
+      payrolloutput <- payrollonly(payrollfile())
       wds <- c()
       ntabs <- length(payrolloutput)
       for(i in 1:ntabs){
