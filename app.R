@@ -88,7 +88,7 @@ server<- function(input,output,session){
       
       for(i in 1:length(outputs[[1]])){
         
-        newpanel <- navlistPanel(tabPanel("Budget",downloadButton(paste0("download",i),"Download"),dataTableOutput(paste0("budget",i))),tabPanel("Payroll",dataTableOutput(paste0("payroll",i))),tabPanel("Costs",dataTableOutput(paste0("costs",i))),widths = c(1,10))
+        newpanel <- navlistPanel(fluidRow(downloadButton(paste0("download",i),"Download")),tabPanel("Budget",dataTableOutput(paste0("budget",i))),tabPanel("Payroll",dataTableOutput(paste0("payroll",i))),tabPanel("Costs",dataTableOutput(paste0("costs",i))),widths = c(1,10))
         navpanels <- append(navpanels,list(newpanel))
       }
       #print(navpanels)
@@ -100,7 +100,7 @@ server<- function(input,output,session){
     
     #output everything minus the budget
     if(is.null(budgetfile())){
-      if(!is.null(costfile()) & !is.null(payrollfile()) != ""){ 
+      if(!is.null(costfile()) & !is.null(payrollfile())){ 
         payrolloutput <- payrollonly(payrollfile())
         costsoutput <- othercostsonly(costfile())
         

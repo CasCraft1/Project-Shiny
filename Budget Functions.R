@@ -96,9 +96,12 @@ gatherpayroll <- function(payroll){
   WDS = c()
   Descript = c()
   index = 0
+  payroll[is.na(payroll[,"Account"]),"Account"] <- ""
+  print(payroll)
+  message("HEEYYEYE")
   for(i in payroll$Name){
     index = index+1
-    if( !is.na(i)){
+    if( !is.na(i) | (payroll$Account[index] == "519310")){
       
       Names <- c(Names,payroll$Name[index])
       Account <- c(Account,payroll$Account[index])
@@ -108,6 +111,10 @@ gatherpayroll <- function(payroll){
     }
   }
   data <- data.frame(Names,Account,Pay,WDS,Descript)
+  data[is.na(data[,"Names"]),"Names"] <- "Grad Students"
+  
+  message("Check here")
+  print(data)
   return(data)
 }
 
@@ -281,6 +288,28 @@ masterfunction <- function(budgetpath,payrollpath,costspath,WDSlist,projectnamel
     namedproll <- output[[2]]
     namedproll <- filter(namedproll,WDS == activeWDS)
     namedproll <- filter(namedproll,substr(Account,1,3)=="519")
+    
+    #handle grad student benefits
+    message("Check Here")
+    print(namedproll)
+    if("Grad Students" %in% projectpayroll$Names){
+      gradbentest <- rev(projectpayroll$Names == "Grad Students")
+      nindex <- 0
+      
+      for(i in gradbentest){
+        message(i)
+        nindex <- nindex +1
+        if(i){
+          gradbentest <- rep(TRUE,length(gradbentest))
+          gradbentest[nindex] <- !i
+          gradbentest[nindex + 1] <- !i
+          print(gradbentest)
+          projectpayroll <- projectpayroll[rev(gradbentest),]
+          break
+        }
+      }}
+    
+    
     payrollrows <- dim(projectpayroll)[1]
     costadmin <-  sum(subset(namedproll,grepl("Admin",FacType))$Pay)
     costfac <- sum(subset(namedproll,grepl("Faculty",FacType))$Pay)
@@ -341,6 +370,8 @@ payrollonly <- function(payrollpath){
   payroll <- read_excel(payrollpath)
   cleanpayroll <- payrollcleaner(payroll)
   basenamedproll <- gatherpayroll(cleanpayroll)
+  message("here")
+  print(basenamedproll)
   wds <- unique(basenamedproll$WDS)
   outputs = list()
   for(k in wds){
@@ -360,6 +391,31 @@ payrollonly <- function(payrollpath){
         }
       }
     }
+    message("check here instead")
+    print(namedproll)
+    if("Grad Students" %in% namedproll$Names){
+      gradbentest <- rev(namedproll$Names == "Grad Students")
+      nindex <- 0
+      
+      for(i in gradbentest){
+        message(i)
+        nindex <- nindex +1
+        if(i){
+          gradbentest <- rep(TRUE,length(gradbentest))
+          gradbentest[nindex] <- !i
+          gradbentest[nindex + 1] <- !i
+          print(gradbentest)
+          namedproll <- namedproll[rev(gradbentest),]
+          break
+        }
+      }}
+    
+    
+    
+    
+    
+    
+    
     payrollrows <- dim(namedproll)[1]
     projectbenefits <- filter(namedproll,substr(Account,1,3)=="519")
     costadmin <-  sum(subset(projectbenefits,grepl("Admin",FacType))$Pay)
