@@ -3,10 +3,13 @@ library(openxlsx)
 library(readxl)
 library(tidyverse)
 library(glue)
-source("Budget Functions.R")
+source("Budget Functions BOA.R")
 # Define the UI
-defaultprojects <- activeprojects()
-projectnames <- lapply(defaultprojects[[1]],function(i) {gsub("_"," ",i) })
+projectdata <- read_excel("Active Projects.xlsx")
+projectbnames <- projectdata$Project
+projectwbs <- projectdata$WBS
+
+projectnames <- lapply(projectbnames,function(i) {gsub("_"," ",i) })
 
 
 
@@ -15,7 +18,7 @@ ui <- navbarPage("",
                           fileInput("payrollfile","Upload Payroll"),
                           fileInput("costfile","Upload Costs"),
                           textInput("monthyear","Month")),
-                          column(5,checkboxGroupInput("projects","Select Projects",choiceNames=projectnames,choiceValues = defaultprojects[[1]]),checkboxInput("selectall","Select All"))),
+                          column(5,checkboxGroupInput("projects","Select Projects",choiceNames=projectnames,choiceValues = projectbnames),checkboxInput("selectall","Select All"))),
                           fluidRow(column(5,textInput("additionalprojects","Additional Projects (As On Budget Sheet)"),actionButton("testbutton","Run!"),textOutput("errormessage")))),
                  tabPanel("Output", uiOutput("newstuff"))
                  
@@ -32,8 +35,8 @@ server<- function(input,output,session){
   extraprojects <- reactive(input$additionalprojects)
   checkboxprojects <- reactive(input$projects)
   
-  observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=defaultprojects[[1]],choiceNames = projectnames,choiceValues = defaultprojects[[1]])}
-    else{updateCheckboxGroupInput(session,"projects",choiceNames = projectnames,choiceValues = defaultprojects[[1]])}})
+  observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=projectbnames,choiceNames = projectnames,choiceValues = projectbnames)}
+    else{updateCheckboxGroupInput(session,"projects",choiceNames = projectnames,choiceValues = projectbnames)}})
   observeEvent(input$testbutton,{
     
     tryCatch({
@@ -49,9 +52,9 @@ server<- function(input,output,session){
       selectedprojects <- c(checkboxprojects(),splitprojects[[1]])
       print(selectedprojects)}
     WDS <- c()
-    for(i in 1:length(defaultprojects[[1]])){
-      if(defaultprojects[[1]][i] %in% selectedprojects){
-        WDS <- c(WDS,defaultprojects[[2]][i])}
+    for(i in 1:length(projectbnames)){
+      if(projectbnames[i] %in% selectedprojects){
+        WDS <- c(WDS,projectwbs[i])}
       
     }
     #call function to gather outputs
