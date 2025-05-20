@@ -71,37 +71,78 @@ placecosts <- function(budget,cleanedcosts,month){
   for(j in cleanedcosts$`Cost Element`){
     costindex <- costindex+1
     count<- 0
+    #handle individual budget account numbers
     for(i in budget$Account){
+      
       elements <- strsplit(i,",")
       count <- count+1
+      if(i != ""){
       #the following if is the logic driving the placements of the costs.
       #if this function fails to place costs correctly or at all then it can most likely be resolved
       #with additions to the logic as well as any needed changes to the accounts on the budget sheet
       if((j == i)|((j== "519800") & grepl("Faculty",budget$Start[count]))|
          (((substr(j,1,2)=="54")|(j=="526001")|(j=="521951"))& grepl("Domestic",budget$Start[count]))|
          ((j=="519310")&(grepl("0.32%",budget$Start[count])))|
-         (j %in% elements[[1]])){budget[count,month]<- budget[count,month]+cleanedcosts[costindex,"Val/COArea Crcy"]}
-      
-      
+         (j %in% elements[[1]])){budget[count,month]<- budget[count,month] + cleanedcosts[costindex,"Val/COArea Crcy"]}
+        
+      #handle ranges 
+      message("check new stuff")
+      for(k in 1:length(elements[[1]])){
+        print(grepl("-",elements[[1]][k]))
+        if(grepl("-",elements[[1]][k])){
+          elementrange <- strsplit(elements[[1]][k],"-")
+          lowerbound <- as.numeric(elementrange[[1]][1])
+          upperbound <- as.numeric(elementrange[[1]][2])
+          print(c(lowerbound, cleanedcosts$`Cost Element`[costindex] ,upperbound))
+          message("check here boss")
+          print((as.numeric(cleanedcosts$`Cost Element`[costindex]) > lowerbound) & (as.numeric(cleanedcosts$`Cost Element`[costindex]) < upperbound))
+          if((as.numeric(cleanedcosts$`Cost Element`[costindex]) > lowerbound) & (as.numeric(cleanedcosts$`Cost Element`[costindex]) < upperbound)){
+            print(budget[count,month])
+           budget[count,month] <- budget[count,month] + cleanedcosts[costindex,"Val/COArea Crcy"]
+           print(budget[count,month])
+          }
+          
+        }
+      } 
+      }
+     }
     }
     
+    
+    
      #handle BOA Subawards
+    #handle case of 1 subaward
+    message("check here actually")
     print(subawardwbs)
-      for(i in length(subawardwbs)){
-        print(cleanedcosts$`WBS Element`)
-        print(subawardwbs[i] %in% cleanedcosts$`WBS Element`)
+    if(length(subawardwbs[[1]]) ==1 ){
+      for(i in 1:length(subawardwbs)){
+        message(subawardwbs[i] %in% cleanedcosts$`WBS Element`)
         if(subawardwbs[i] %in% cleanedcosts$`WBS Element`){
           for(j in 1:length(budget$Start)){
-            print(length(budget$Start))
-            print(grepl(subawardwbs[i],budget$Start[j]))
             if(grepl(subawardwbs[i],budget$Start[j])){
               budget[j,month] <- budget[j,month] + sum(cleanedcosts$`Val/COArea Crcy`)
             }
+            
+            }
           }
         }
-      }
-    
-  }
+    }
+    #handle case of more than 1 subaward number
+    message("Look over here")
+    message(length(subawardwbs[[1]]))
+    if( length(subawardwbs[[1]])>1){
+      for(i in 1:length(subawardwbs[[1]])){
+        message(subawardwbs[[1]][i] %in% cleanedcosts$`WBS Element`)
+        if(subawardwbs[[1]][i] %in% cleanedcosts$`WBS Element`){
+          for(j in 1:length(budget$Start)){
+            if(grepl(subawardwbs[[1]][i],budget$Start[j])){
+              budget[j,month] <- budget[j,month] + sum(cleanedcosts$`Val/COArea Crcy`)
+            }
+            
+          }
+        }
+      }      
+    }
   return(budget)
 }
 
@@ -345,10 +386,12 @@ masterfunction <- function(budgetpath,payrollpath,costspath,WDSlist,projectnamel
         print(i)
         subcost <- cleancosts(costss,i)
         budget <- placecosts(budget,subcost,month)
+        costs <- rbind(costs,subcost)
+        numberofrows <- numberofrows + 1
+        totalcost <- sum(subcost$`Val/COArea Crcy`) + totalcost
       }
     }    
     
-    message("here")
     budget <- select(budget,"Start",month)
     #place total costs on cost sheet
     costs[numberofrows +1,1] <- "Total (All Costs)"
@@ -379,7 +422,7 @@ activeprojects <- function(){
 
 #external libraries used to develop this package. Running this function before use of this
 #library is required. If this function fails, it is most likely because these libraries are not
-#arlready installed
+#already installed
 requiredlibraries <- function(){
   library(readxl)
   library(tidyverse)
@@ -475,22 +518,5 @@ othercostsonly <- function(othercostspath){
 
 
 
-#test Bass March 2025
 
-#budgetpath <- "C:/Users/ccraft/Documents/Budget Updates/March 2025/Ligon Year 5 NCC + Supp. (Tracking) (2).xlsx"
-#payrollpath <- "C:/Users/ccraft/Documents/Budget Updates/March 2025/detailpayrollmarch2025.xlsx"
-#costspath <- "C:/Users/ccraft/Documents/Budget Updates/March 2025/costsmarch2025.xlsx"
-
-#budget <- read_excel(budgetpath,"UNO Bass_316")
-#cleanbudget <- budgetcleaner(budget)
-#payroll <- read_excel(payrollpath)
-#cleanpayroll <- payrollcleaner(payroll)
-#namedpayroll <- gatherpayroll(cleanpayroll)
-#cleanbudget$`Mar 2025` <- 0
-#labeled <- placebenefits(cleanbudget,namedpayroll,"Mar 2025")
-#labeled <- filter(labeled,WDS == "44-0108-1001-318")
-#labeled <- filter(labeled,substr(Account,1,3)=="519" )
-#totaladmin <- sum(subset(labeled,grepl("Admin",FacType))$Pay)
-#totaladmin
-length(as.character(NULL))
 
