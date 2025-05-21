@@ -19,7 +19,7 @@ ui <- navbarPage("",
                           fileInput("costfile","Upload Costs"),
                           textInput("monthyear","Month")),
                           column(5,checkboxGroupInput("projects","Select Projects",choiceNames=projectnames,choiceValues = projectbnames),checkboxInput("selectall","Select All"))),
-                          fluidRow(column(5,textInput("additionalprojects","Additional Projects (As On Budget Sheet)"),actionButton("testbutton","Run!"),textOutput("errormessage")))),
+                          fluidRow(column(5,actionButton("testbutton","Run!"),textOutput("errormessage")))),
                  tabPanel("Output", uiOutput("newstuff"))
                  
    
@@ -32,7 +32,6 @@ server<- function(input,output,session){
   costfile <- reactive(input$costfile$datapath)
   payrollfile <- reactive(input$payrollfile$datapath)
   budgetfile <- reactive(input$budgetfile$datapath)
-  extraprojects <- reactive(input$additionalprojects)
   checkboxprojects <- reactive(input$projects)
   
   observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=projectbnames,choiceNames = projectnames,choiceValues = projectbnames)}
@@ -46,11 +45,7 @@ server<- function(input,output,session){
 
     
     #collect wds numbers using selected projects
-    if(extraprojects() == ""){selectedprojects <- checkboxprojects()}
-    if(extraprojects()!= ""){
-      splitprojects <- strsplit(extraprojects(),",")
-      selectedprojects <- c(checkboxprojects(),splitprojects[[1]])
-      print(selectedprojects)}
+    selectedprojects <- checkboxprojects()
     WDS <- c()
     for(i in 1:length(projectbnames)){
       if(projectbnames[i] %in% selectedprojects){
