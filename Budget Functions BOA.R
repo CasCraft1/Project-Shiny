@@ -382,13 +382,16 @@ masterfunction <- function(budgetpath,payrollpath,costspath,WDSlist,projectnamel
     print(budget$Account[2])
     print(!is.null(budget$Account[2]))
     if(budget$Account[2]!=""){
-      for(i in subawardwbs){
+      for(i in subawardwbs[[1]]){
         print(i)
+        print(i %in% costss$`WBS Element`)
+        if(i %in% costss$`WBS Element`){
         subcost <- cleancosts(costss,i)
         budget <- placecosts(budget,subcost,month)
         costs <- rbind(costs,subcost)
         numberofrows <- numberofrows + 1
         totalcost <- sum(subcost$`Val/COArea Crcy`) + totalcost
+        }
       }
     }    
     
