@@ -14,7 +14,7 @@ projectnames <- lapply(projectbnames,function(i) {gsub("_"," ",i) })
 
 
 ui <- navbarPage("",
-                 tabPanel("Settings",fluidRow(column(5,fileInput("budgetfile","Upload Budget"),
+                 tabPanel("Settings",downloadButton("Help",label = "Help"),fluidRow(column(5,fileInput("budgetfile","Upload Budget"),
                           fileInput("payrollfile","Upload Payroll"),
                           fileInput("costfile","Upload Costs"),
                           textInput("monthyear","Month")),
@@ -33,6 +33,9 @@ server<- function(input,output,session){
   payrollfile <- reactive(input$payrollfile$datapath)
   budgetfile <- reactive(input$budgetfile$datapath)
   checkboxprojects <- reactive(input$projects)
+  
+  #Download SOP from app
+output$Help <- downloadHandler("BudgetToolSOP.docx",content ="Budget Tool SOP.docx" )
   
   
   observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=projectbnames,choiceNames = projectnames,choiceValues = projectbnames)}
