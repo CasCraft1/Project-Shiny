@@ -14,7 +14,9 @@ projectnames <- lapply(projectbnames,function(i) {gsub("_"," ",i) })
 
 
 ui <- navbarPage("",
-                 tabPanel("Settings",downloadButton("Help",label = "Help"),fluidRow(column(5,fileInput("budgetfile","Upload Budget"),
+                 tabPanel("Settings",
+                          tags$a(href = "https://unomail.sharepoint.com/sites/UNO-NCITEBudgetandSpending/Shared%20Documents/Accounting/Cost%20Tracking/Budget%20Tool%20SOP.docx","Help"),
+                          fluidRow(column(5,fileInput("budgetfile","Upload Budget"),
                           fileInput("payrollfile","Upload Payroll"),
                           fileInput("costfile","Upload Costs"),
                           textInput("monthyear","Month")),
@@ -36,7 +38,7 @@ server<- function(input,output,session){
   
   #Download SOP from app
 output$Help <- downloadHandler("BudgetToolSOP.docx",content ="Budget Tool SOP.docx",contentType = "file/docx" )
-  
+  ?downloadHandler()
   
   observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=projectbnames,choiceNames = projectnames,choiceValues = projectbnames)}
     else{updateCheckboxGroupInput(session,"projects",choiceNames = projectnames,choiceValues = projectbnames)}})
