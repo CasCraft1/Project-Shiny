@@ -35,7 +35,7 @@ server<- function(input,output,session){
   checkboxprojects <- reactive(input$projects)
   
   #Download SOP from app
-output$Help <- downloadHandler("BudgetToolSOP.docx",content ="Budget Tool SOP.docx" )
+output$Help <- downloadHandler("BudgetToolSOP.docx",content ="Budget Tool SOP.docx",contentType = "file/docx" )
   
   
   observeEvent(input$selectall,{if(input$selectall == TRUE){updateCheckboxGroupInput(session,"projects",selected=projectbnames,choiceNames = projectnames,choiceValues = projectbnames)}
